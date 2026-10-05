@@ -130,6 +130,11 @@ function appendTranscript(userText, jarvisText) {
     transcriptFeed.appendChild(jarvisDiv);
   }
 
+  // Prune old DOM entries (keep max 50) to prevent browser memory growth
+  while (transcriptFeed.children.length > 50) {
+    transcriptFeed.removeChild(transcriptFeed.firstChild);
+  }
+
   transcriptFeed.scrollTop = transcriptFeed.scrollHeight;
 }
 

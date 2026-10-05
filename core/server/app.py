@@ -194,12 +194,15 @@ async def websocket_endpoint(websocket: WebSocket):
             active_connections.remove(websocket)
 
 async def broadcast_message(message: dict):
-    """Broadcast JSON message to all connected clients."""
+    """Broadcast JSON message to all connected clients and prune dead sockets."""
+    dead_connections = set()
     for conn in list(active_connections):
         try:
             await conn.send_json(message)
         except Exception:
-            pass
+            dead_connections.add(conn)
+    if dead_connections:
+        active_connections.difference_update(dead_connections)
 
 # Mount static assets
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
