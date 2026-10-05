@@ -10,8 +10,8 @@ BASE_DIR = Path(__file__).resolve().parent
 class SpotifyConfig(BaseModel):
     enabled: bool = True
     intro_song_name: str = "Highway to Hell - AC/DC"
-    # Spotify Track URI for AC/DC - Highway to Hell
-    intro_song_uri: str = "spotify:track:2zYzyRzz6Ye8jC9ot8JWHd"
+    # Spotify Track URI for AC/DC - Highway to Hell (User's region-verified track)
+    intro_song_uri: str = "spotify:track:2zYzyRzz6pRmhPzyfMEC8s"
     default_volume: int = 75
 
 class VoiceConfig(BaseModel):

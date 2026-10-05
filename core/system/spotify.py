@@ -2,10 +2,10 @@
 Spotify Automation Engine for macOS
 Controls Spotify playback, tracks, and the iconic 'Highway to Hell' protocol.
 """
+import re
 from typing import Dict, Any, Optional
+from config import settings
 from core.system.macos import run_applescript
-
-HIGHWAY_TO_HELL_URI = "spotify:track:2zYzyRzz6Ye8jC9ot8JWHd"
 
 class SpotifyController:
     """Controls Spotify on macOS via native AppleScript."""
@@ -24,10 +24,26 @@ class SpotifyController:
         return "Error" not in res
 
     @staticmethod
+    def normalize_uri(track_input: str) -> str:
+        """Convert Spotify URL or URI into a clean spotify:track:URI format."""
+        track_input = track_input.strip()
+        # If web URL: https://open.spotify.com/track/2zYzyRzz6pRmhPzyfMEC8s?si=...
+        url_match = re.search(r"spotify\.com/track/([a-zA-Z0-9]+)", track_input)
+        if url_match:
+            return f"spotify:track:{url_match.group(1)}"
+        return track_input
+
+    @staticmethod
     def play_track(track_uri: str) -> bool:
-        """Play a specific Spotify track by URI."""
+        """Play a specific Spotify track by URI or URL."""
         SpotifyController.launch()
-        script = f'tell application "Spotify" to play track "{track_uri}"'
+        uri = SpotifyController.normalize_uri(track_uri)
+        script = f'''
+        tell application "Spotify"
+            activate
+            play track "{uri}"
+        end tell
+        '''
         res = run_applescript(script)
         return "Error" not in res
 
@@ -37,14 +53,15 @@ class SpotifyController:
         Tony Stark Protocol:
         Launches Spotify, sets volume, and blasts AC/DC's Highway to Hell.
         """
+        uri = settings.spotify.intro_song_uri
         SpotifyController.launch()
         SpotifyController.set_volume(volume)
-        success = SpotifyController.play_track(HIGHWAY_TO_HELL_URI)
+        success = SpotifyController.play_track(uri)
         return {
             "status": "success" if success else "failed",
-            "song": "Highway to Hell - AC/DC",
+            "song": settings.spotify.intro_song_name,
             "volume": volume,
-            "uri": HIGHWAY_TO_HELL_URI
+            "uri": uri
         }
 
     @staticmethod
@@ -86,20 +103,24 @@ class SpotifyController:
 
     @staticmethod
     def get_current_track() -> Optional[Dict[str, str]]:
-        """Get details about the currently playing track."""
+        """Get details about the currently playing track safely."""
         if not SpotifyController.is_running():
             return None
         
         script = '''
         tell application "Spotify"
-            if player state is stopped then
+            try
+                if player state is stopped then
+                    return "stopped"
+                end if
+                set trackName to name of current track
+                set artistName to artist of current track
+                set albumName to album of current track
+                set playerStatus to player state as string
+                return trackName & "|||" & artistName & "|||" & albumName & "|||" & playerStatus
+            on error
                 return "stopped"
-            end if
-            set trackName to name of current track
-            set artistName to artist of current track
-            set albumName to album of current track
-            set playerStatus to player state as string
-            return trackName & "|||" & artistName & "|||" & albumName & "|||" & playerStatus
+            end try
         end tell
         '''
         res = run_applescript(script)
