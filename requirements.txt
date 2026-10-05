@@ -1,0 +1,10 @@
+# Core & CLI
+rich>=13.7.0
+requests>=2.31.0
+pydantic>=2.5.0
+
+# Text-to-Speech (Neural Voice Engine)
+edge-tts>=6.1.10
+
+# Audio handling
+aiohttp>=3.9.0
