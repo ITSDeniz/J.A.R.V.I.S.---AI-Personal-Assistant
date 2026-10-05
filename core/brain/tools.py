@@ -14,14 +14,15 @@ from core.system.macos import (
     get_quick_diagnostics,
 )
 from core.system.spotify import SpotifyController
+from core.system.audio_player import StarkAudioPlayer
 
 class ToolRegistry:
     """Registry of system actions callable by JARVIS."""
 
     @staticmethod
     def play_highway_to_hell() -> Dict[str, Any]:
-        """Activate the Tony Stark Highway to Hell protocol on Spotify."""
-        return SpotifyController.play_highway_to_hell(volume=settings.spotify.default_volume)
+        """Activate the Tony Stark Highway to Hell protocol."""
+        return StarkAudioPlayer.play_highway_to_hell(volume=settings.spotify.default_volume)
 
     @staticmethod
     def spotify_control(action: str) -> Dict[str, Any]:

@@ -41,8 +41,10 @@ env/
 assets/cache/
 *.mp3
 *.wav
-!assets/sounds/*.mp3
-!assets/sounds/*.wav
+assets/sounds/*.mp3
+assets/sounds/*.wav
+assets/sounds/*.m4a
+!assets/sounds/README.md
 
 # IDE
 .vscode/

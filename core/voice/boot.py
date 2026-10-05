@@ -6,6 +6,7 @@ from typing import Optional
 from config import settings
 from core.system.macos import get_battery_status, get_system_volume
 from core.system.spotify import SpotifyController
+from core.system.audio_player import StarkAudioPlayer
 from core.voice.tts import jarvis_voice
 from core.utils.logger import log_info, log_success
 
@@ -46,5 +47,5 @@ def run_boot_sequence(play_intro_song: bool = False):
         time.sleep(0.5)
         log_info("Initializing Tony Stark music protocol...")
         jarvis_voice.speak("Initiating protocol: Highway to Hell.", block=True)
-        SpotifyController.play_highway_to_hell(volume=settings.spotify.default_volume)
+        StarkAudioPlayer.play_highway_to_hell(volume=settings.spotify.default_volume)
         log_success("Music protocol active.")
