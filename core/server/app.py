@@ -51,19 +51,57 @@ async def get_telemetry():
     vol = get_system_volume()
     spotify_track = SpotifyController.get_current_track()
     weather = WeatherService.get_current_weather()
+    
+    is_local_playing = StarkAudioPlayer._current_proc is not None and StarkAudioPlayer._current_proc.poll() is None
+    
+    if is_local_playing:
+        media_info = {
+            "is_running": True,
+            "track": {
+                "name": "Highway To Hell",
+                "artist": "AC/DC (Stark Protocol)",
+                "state": "playing"
+            }
+        }
+    elif spotify_track:
+        media_info = {
+            "is_running": SpotifyController.is_running(),
+            "track": spotify_track
+        }
+    else:
+        media_info = {
+            "is_running": SpotifyController.is_running(),
+            "track": {
+                "name": "AC/DC - Highway To Hell",
+                "artist": "Stark Protocol Standby",
+                "state": "ready"
+            }
+        }
+
     return {
         "assistant_name": settings.assistant_name,
         "owner": settings.owner_name,
         "battery": batt,
         "volume": vol,
-        "spotify": {
-            "is_running": SpotifyController.is_running(),
-            "track": spotify_track
-        },
+        "spotify": media_info,
         "weather": weather,
         "running_apps": len(get_running_apps()),
         "voice": settings.voice.voice_name
     }
+
+@app.on_event("startup")
+async def start_telemetry_heartbeat():
+    """Continuously broadcast telemetry updates to connected clients every 1.5 seconds."""
+    async def heartbeat():
+        while True:
+            await asyncio.sleep(1.5)
+            if active_connections:
+                try:
+                    telem = await get_telemetry()
+                    await broadcast_message({"type": "telemetry", "data": telem})
+                except Exception:
+                    pass
+    asyncio.create_task(heartbeat())
 
 @app.post("/api/command")
 async def execute_command(req: CommandRequest):

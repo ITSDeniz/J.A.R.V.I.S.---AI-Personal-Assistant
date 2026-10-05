@@ -90,12 +90,28 @@ function updateTelemetryUI(data) {
     weatherDisplay.innerText = `${data.weather.temp_c}°C ${data.weather.condition || ''}`;
   }
 
-  // Spotify Track
+  // Media Track
   if (data.spotify && data.spotify.track && data.spotify.track.name) {
     trackName.innerText = data.spotify.track.name;
     trackArtist.innerText = data.spotify.track.artist;
+    const isPlaying = data.spotify.track.state === 'playing';
+    const isReady = data.spotify.track.state === 'ready';
+    const dotColor = isPlaying ? '#22c55e' : (isReady ? '#00f2fe' : '#f59e0b');
+    const musicDot = document.getElementById('musicDot');
+    if (musicDot) {
+      musicDot.style.background = dotColor;
+      musicDot.style.boxShadow = `0 0 10px ${dotColor}`;
+    }
   }
 }
+
+// 4. Periodic Telemetry Heartbeat (Updates song and battery in real time)
+setInterval(() => {
+  fetch('/api/telemetry')
+    .then(res => res.json())
+    .then(data => updateTelemetryUI(data))
+    .catch(() => {});
+}, 2000);
 
 function appendTranscript(userText, jarvisText) {
   const now = new Date().toLocaleTimeString();
