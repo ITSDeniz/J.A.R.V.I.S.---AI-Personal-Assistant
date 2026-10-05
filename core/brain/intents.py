@@ -17,12 +17,12 @@ class IntentParser:
         if any(k in t for k in ["highway to hell", "stark protocol", "ac/dc", "acdc", "rock and roll", "suit up"]):
             res = ToolRegistry.play_highway_to_hell()
             return (
-                "Initiating the Tony Stark protocol. Blasting Highway to Hell on Spotify, Sir.",
+                "Initiating the Tony Stark protocol. Blasting Highway to Hell, Sir.",
                 res
             )
 
-        # Spotify Controls
-        if any(k in t for k in ["pause music", "stop music", "pause spotify", "hold the music"]):
+        # Spotify / Music Controls
+        if any(k in t for k in ["pause music", "stop music", "pause audio", "stop audio", "pause spotify", "hold the music"]):
             res = ToolRegistry.spotify_control("pause")
             return ("Pausing playback, Sir.", res)
 

@@ -20,22 +20,26 @@ class StarkAudioPlayer:
     _current_proc: Optional[subprocess.Popen] = None
 
     @classmethod
-    def has_local_intro(cls) -> bool:
-        """Check if a local intro.mp3 or intro.wav exists."""
-        return (
-            (SOUNDS_DIR / "intro.mp3").exists() or
-            (SOUNDS_DIR / "intro.wav").exists() or
-            (SOUNDS_DIR / "highway_to_hell.mp3").exists()
-        )
+    def get_local_intro_path(cls) -> Optional[Path]:
+        """Return path to existing local sound file in assets/sounds/."""
+        if not SOUNDS_DIR.exists():
+            return None
+        # First priority: files matching highway or intro
+        for ext in ("*.mp3", "*.wav", "*.m4a"):
+            for f in SOUNDS_DIR.glob(ext):
+                if any(k in f.name.lower() for k in ["highway", "hell", "intro", "stark"]):
+                    return f
+        # Second priority: any audio file found
+        for ext in ("*.mp3", "*.wav", "*.m4a"):
+            files = list(SOUNDS_DIR.glob(ext))
+            if files:
+                return files[0]
+        return None
 
     @classmethod
-    def get_local_intro_path(cls) -> Optional[Path]:
-        """Return path to existing local sound file."""
-        for name in ["intro.mp3", "intro.wav", "highway_to_hell.mp3"]:
-            path = SOUNDS_DIR / name
-            if path.exists():
-                return path
-        return None
+    def has_local_intro(cls) -> bool:
+        """Check if any local audio file exists."""
+        return cls.get_local_intro_path() is not None
 
     @classmethod
     def play_local_file(cls, file_path: Path, volume: int = 75) -> bool:

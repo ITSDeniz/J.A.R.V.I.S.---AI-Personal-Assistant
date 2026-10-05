@@ -31,7 +31,8 @@ class ToolRegistry:
         if act == "play":
             SpotifyController.play()
             return {"status": "resumed playback"}
-        elif act == "pause":
+        elif act in ("pause", "stop"):
+            StarkAudioPlayer.stop_local_file()
             SpotifyController.pause()
             return {"status": "paused playback"}
         elif act in ("toggle", "playpause"):
