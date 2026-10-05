@@ -9,10 +9,13 @@ from typing import Optional, Callable
 from config import settings
 from core.voice.stt import jarvis_stt
 from core.voice.tts import jarvis_voice
-from core.brain import jarvis_agent
 from core.utils.logger import log_info, log_success, log_warning, console
 
 WAKE_WORDS = ["hey jarvis", "jarvis", "ok jarvis", "okay jarvis", "hi jarvis"]
+
+def _get_agent():
+    from core.brain.agent import jarvis_agent
+    return jarvis_agent
 
 class WakeWordListener:
     """Hands-free wake word detector and continuous voice loop."""
@@ -49,7 +52,7 @@ class WakeWordListener:
             return
 
         # Execute through Jarvis agent
-        jarvis_agent.process_command(cmd, speak_output=True)
+        _get_agent().process_command(cmd, speak_output=True)
 
     def run_continuous_loop(self):
         """Continuous background listening loop for wake word."""
@@ -69,14 +72,14 @@ class WakeWordListener:
 
                     if wake_cmd:
                         # User said command together with wake word
-                        jarvis_agent.process_command(wake_cmd, speak_output=True)
+                        _get_agent().process_command(wake_cmd, speak_output=True)
                     else:
                         # User only said 'Hey Jarvis'
                         jarvis_voice.speak(f"Yes, {settings.owner_name}?")
                         time.sleep(0.2)
                         next_cmd = jarvis_stt.listen_and_transcribe(prompt="Ready for your command, Sir...")
                         if next_cmd:
-                            jarvis_agent.process_command(next_cmd, speak_output=True)
+                            _get_agent().process_command(next_cmd, speak_output=True)
                         else:
                             jarvis_voice.speak("Standing by, Sir.")
 

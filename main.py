@@ -125,6 +125,11 @@ def main():
     display_diagnostics()
 
     # CLI Flags
+    if "--hud" in sys.argv:
+        from server import start_hud
+        start_hud()
+        return
+
     if "--boot" in sys.argv:
         run_boot_sequence(play_intro_song="--music" in sys.argv)
         return
@@ -144,30 +149,35 @@ def main():
             jarvis_agent.process_command(cmd, speak_output=True)
             return
 
-    console.print("\n[bold cyan]─── AVAILABLE PROTOCOLS (PART 4: FULL VOICE LOOP) ───[/bold cyan]")
-    console.print("  [bold green]1[/bold green] -> [bold white]Interactive AI Chat Terminal[/bold white] (Type naturally to JARVIS)")
+    console.print("\n[bold cyan]─── AVAILABLE PROTOCOLS (PART 5: HOLOGRAPHIC HUD) ───[/bold cyan]")
+    console.print("  [bold green]1[/bold green] -> [bold white]Launch Holographic Web HUD[/bold white] (Arc Reactor & Live Waveforms)")
     console.print("  [bold green]2[/bold green] -> [bold white]Push-to-Talk Microphone Mode[/bold white] (Press Enter & talk with your voice)")
     console.print("  [bold green]3[/bold green] -> [bold white]Hands-Free Wake Word Mode[/bold white] (Always listening for 'Hey Jarvis')")
-    console.print("  [bold green]4[/bold green] -> [bold white]Tony Stark Full Boot Sequence[/bold white] (Greeting + Highway to Hell)")
-    console.print("  [bold green]5[/bold green] -> [bold white]Spotify Play/Pause Toggle[/bold white]")
-    console.print("  [bold green]6[/bold green] -> [bold white]Refresh System Telemetry[/bold white]")
+    console.print("  [bold green]4[/bold green] -> [bold white]Interactive AI Chat Terminal[/bold white] (Type naturally to JARVIS)")
+    console.print("  [bold green]5[/bold green] -> [bold white]Tony Stark Full Boot Sequence[/bold white] (Greeting + Highway to Hell)")
+    console.print("  [bold green]6[/bold green] -> [bold white]Spotify Play/Pause Toggle[/bold white]")
+    console.print("  [bold green]7[/bold green] -> [bold white]Refresh System Telemetry[/bold white]")
     console.print("  [bold red]q[/bold red] -> [bold white]Exit[/bold white]\n")
 
     while True:
         try:
             choice = console.input("[bold cyan]JARVIS > Select Mode: [/bold cyan]").strip()
             if choice == "1":
-                conversational_console()
+                from server import start_hud
+                start_hud()
+                break
             elif choice == "2":
                 push_to_talk_mode()
             elif choice == "3":
                 jarvis_listener.run_continuous_loop()
             elif choice == "4":
-                run_boot_sequence(play_intro_song=True)
+                conversational_console()
             elif choice == "5":
+                run_boot_sequence(play_intro_song=True)
+            elif choice == "6":
                 SpotifyController.toggle_play()
                 log_info("Toggled Spotify playback.")
-            elif choice == "6":
+            elif choice == "7":
                 display_diagnostics()
             elif choice.lower() in ("q", "exit", "quit"):
                 log_info("Standing by, Sir.")

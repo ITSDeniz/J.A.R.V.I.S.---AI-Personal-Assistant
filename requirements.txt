@@ -11,3 +11,8 @@ aiohttp>=3.9.0
 SpeechRecognition>=3.10.0
 sounddevice>=0.4.6
 numpy>=1.26.0
+
+# Sci-Fi Web HUD & WebSockets
+fastapi>=0.110.0
+uvicorn[standard]>=0.28.0
+websockets>=12.0

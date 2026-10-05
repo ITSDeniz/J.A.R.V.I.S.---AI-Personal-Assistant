@@ -6,7 +6,7 @@ from typing import List, Dict, Any, Optional
 from config import settings
 from core.brain.intents import IntentParser
 from core.brain.llm import LLMEngine
-from core.voice import jarvis_voice
+from core.voice.tts import jarvis_voice
 from core.utils.logger import log_info, log_success
 
 class JarvisAgent:

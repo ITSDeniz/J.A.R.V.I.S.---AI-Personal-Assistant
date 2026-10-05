@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>J.A.R.V.I.S. | Tactical Sci-Fi HUD</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="sci-fi-theme">
+  <div class="hud-container">
+
+    <!-- TOP HEADER / STATUS BAR -->
+    <header class="hud-header">
+      <div class="hud-title-zone">
+        <div class="reactor-dot active"></div>
+        <h1 class="hud-logo">J.A.R.V.I.S. <span class="version-tag">MARK VII</span></h1>
+        <span class="system-status-badge" id="connStatus">ONLINE // STANDBY</span>
+      </div>
+
+      <div class="hud-metrics-bar">
+        <div class="metric-pill">
+          <span class="metric-label">LOCAL TIME</span>
+          <span class="metric-val" id="timeDisplay">--:--:--</span>
+        </div>
+        <div class="metric-pill">
+          <span class="metric-label">POWER CORE</span>
+          <span class="metric-val" id="batteryDisplay">--%</span>
+        </div>
+        <div class="metric-pill">
+          <span class="metric-label">METEOROLOGY</span>
+          <span class="metric-val" id="weatherDisplay">--°C</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- MAIN HUD GRID -->
+    <main class="hud-grid">
+
+      <!-- LEFT TELEMETRY PANEL -->
+      <aside class="hud-panel left-panel">
+        <div class="panel-header">
+          <span class="panel-icon">⚡</span>
+          <h2>SYSTEM DIAGNOSTICS</h2>
+        </div>
+
+        <div class="telemetry-card">
+          <div class="card-row">
+            <span class="row-label">HOST SYSTEM</span>
+            <span class="row-val">macOS CoreAudio</span>
+          </div>
+          <div class="card-row">
+            <span class="row-label">COGNITIVE ENGINE</span>
+            <span class="row-val text-cyan">Dual-Engine (OLLAMA / GEMINI)</span>
+          </div>
+          <div class="card-row">
+            <span class="row-label">VOICE SYNTHESIS</span>
+            <span class="row-val text-cyan">en-GB-RyanNeural</span>
+          </div>
+          <div class="card-row">
+            <span class="row-label">ACOUSTIC LEVEL</span>
+            <span class="row-val" id="volumeVal">50%</span>
+          </div>
+          <div class="volume-slider-wrap">
+            <input type="range" id="volumeSlider" min="0" max="100" value="50" class="hud-slider">
+          </div>
+        </div>
+
+        <!-- STARK MUSIC PROTOCOL CARD -->
+        <div class="panel-header mt-lg">
+          <span class="panel-icon">🎵</span>
+          <h2>MEDIA & STARK PROTOCOL</h2>
+        </div>
+
+        <div class="telemetry-card stark-card">
+          <button id="starkBtn" class="stark-protocol-btn">
+            <span class="flame-icon">🔥</span>
+            <div class="btn-text">
+              <span class="btn-title">TONY STARK PROTOCOL</span>
+              <span class="btn-subtitle">BLAST "HIGHWAY TO HELL"</span>
+            </div>
+          </button>
+
+          <div class="music-track-box">
+            <div class="track-status-dot" id="musicDot"></div>
+            <div class="track-details">
+              <span class="track-name" id="trackName">AC/DC - Highway To Hell</span>
+              <span class="track-artist" id="trackArtist">Media Engine Ready</span>
+            </div>
+          </div>
+
+          <div class="media-controls">
+            <button id="prevBtn" class="media-btn" title="Previous">⏮</button>
+            <button id="playPauseBtn" class="media-btn play-btn" title="Play/Pause">⏯</button>
+            <button id="nextBtn" class="media-btn" title="Next">⏭</button>
+          </div>
+        </div>
+      </aside>
+
+      <!-- CENTER ARC REACTOR & VISUALIZER -->
+      <section class="hud-center">
+        <div class="arc-reactor-wrapper" id="arcReactor" title="Click Arc Reactor to Speak!">
+          <div class="reactor-outer-ring"></div>
+          <div class="reactor-spokes"></div>
+          <div class="reactor-middle-ring"></div>
+          <div class="reactor-segmented-ring"></div>
+          <div class="reactor-core">
+            <div class="core-glow"></div>
+            <div class="core-symbol">⚡</div>
+          </div>
+          <div class="reactor-pulse-waves"></div>
+        </div>
+
+        <div class="interaction-prompt" id="promptText">
+          CLICK ARC REACTOR OR PRESS [SPACEBAR] TO TALK
+        </div>
+
+        <!-- CANVAS AUDIO WAVEFORM -->
+        <div class="waveform-container">
+          <canvas id="waveformCanvas" width="560" height="90"></canvas>
+        </div>
+
+        <!-- QUICK PROTOCOL BUTTONS -->
+        <div class="quick-commands">
+          <button class="quick-chip" data-cmd="What is my battery level?">🔋 Battery Status</button>
+          <button class="quick-chip" data-cmd="What is the weather today?">☁️ Weather</button>
+          <button class="quick-chip" data-cmd="What time is it?">⏱️ Current Time</button>
+          <button class="quick-chip" data-cmd="Play Highway to Hell">🎸 Highway to Hell</button>
+          <button class="quick-chip" data-cmd="Open Safari">🌐 Open Safari</button>
+        </div>
+      </section>
+
+      <!-- RIGHT TRANSCRIPT & TELEMETRY PANEL -->
+      <aside class="hud-panel right-panel">
+        <div class="panel-header">
+          <span class="panel-icon">💬</span>
+          <h2>TACTICAL TRANSCRIPT</h2>
+        </div>
+
+        <div class="transcript-feed" id="transcriptFeed">
+          <div class="feed-entry jarvis-entry">
+            <span class="entry-time">[SYSTEM ONLINE]</span>
+            <p>At your service, Sir. Tactical telemetry and vocal subsystems are standing by.</p>
+          </div>
+        </div>
+
+        <!-- COMMAND INPUT BAR -->
+        <form id="commandForm" class="hud-input-bar">
+          <input type="text" id="commandInput" placeholder="Enter tactical command for JARVIS..." autocomplete="off">
+          <button type="submit" id="sendBtn" class="send-btn">TRANSMIT</button>
+        </form>
+      </aside>
+
+    </main>
+
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
