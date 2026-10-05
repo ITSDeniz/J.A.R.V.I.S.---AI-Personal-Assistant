@@ -1,6 +1,6 @@
 """
 J.A.R.V.I.S. - Just A Rather Very Intelligent System
-Main Application Entry Point (Part 3: Dual-Engine Brain & Agentic Tool Execution)
+Main Application Entry Point (Part 4: Microphone, Speech-to-Text & Wake Word Detection)
 """
 import sys
 import time
@@ -22,10 +22,15 @@ from core.system.macos import (
     get_quick_diagnostics,
 )
 from core.system.spotify import SpotifyController
-from core.voice import jarvis_voice, run_boot_sequence, generate_boot_speech
+from core.voice import (
+    jarvis_voice,
+    run_boot_sequence,
+    generate_boot_speech,
+    jarvis_stt,
+    jarvis_listener,
+)
 from core.brain import jarvis_agent
 from rich.table import Table
-from rich.panel import Panel
 
 def display_diagnostics():
     """Display real-time system diagnostics in a sci-fi table."""
@@ -55,8 +60,9 @@ def display_diagnostics():
     app_count = diag.get("running_apps", 0)
     table.add_row("Process Matrix", f"{app_count} apps active", "WindowServer OK")
 
-    # Neural Voice Engine
-    table.add_row("Voice Output", "[green]Online[/green]", f"{settings.voice.voice_name}")
+    # Audio IO
+    table.add_row("Audio Input (Mic)", "[green]Online[/green]", "CoreAudio 16kHz VAD")
+    table.add_row("Voice Output (TTS)", "[green]Online[/green]", f"{settings.voice.voice_name}")
 
     # Cognitive Engine
     table.add_row("Cognitive Core", "[green]Online[/green]", f"Dual-Engine ({settings.brain.provider.upper()})")
@@ -89,12 +95,28 @@ def conversational_console():
                 return True
 
             # Process command through agent
-            response = jarvis_agent.process_command(user_input, speak_output=True)
+            jarvis_agent.process_command(user_input, speak_output=True)
 
         except KeyboardInterrupt:
             log_info("\nStanding down, Sir.")
             break
     return False
+
+def push_to_talk_mode():
+    """Push-to-Talk voice interface."""
+    console.print("\n[bold cyan]─── PUSH-TO-TALK VOICE INTERFACE ───[/bold cyan]")
+    console.print("[dim]Press [Enter] to start speaking. Say your command, then pause.[/dim]")
+    console.print("[dim]Type 'q' and press Enter to return to menu.[/dim]\n")
+
+    while True:
+        try:
+            prompt = console.input("[bold yellow]Press [Enter] to Speak (or 'q' to return): [/bold yellow]").strip()
+            if prompt.lower() in ("q", "quit", "exit"):
+                break
+
+            jarvis_listener.listen_single_turn()
+        except KeyboardInterrupt:
+            break
 
 def main():
     print_banner()
@@ -107,6 +129,14 @@ def main():
         run_boot_sequence(play_intro_song="--music" in sys.argv)
         return
 
+    if "--listen" in sys.argv:
+        jarvis_listener.run_continuous_loop()
+        return
+
+    if "--voice" in sys.argv or "--push-to-talk" in sys.argv:
+        push_to_talk_mode()
+        return
+
     if "--command" in sys.argv:
         idx = sys.argv.index("--command")
         if idx + 1 < len(sys.argv):
@@ -114,12 +144,13 @@ def main():
             jarvis_agent.process_command(cmd, speak_output=True)
             return
 
-    # Default directly into conversational terminal
-    console.print("\n[bold cyan]─── AVAILABLE PROTOCOLS (PART 3: AGENTIC BRAIN) ───[/bold cyan]")
-    console.print("  [bold green]1[/bold green] -> [bold white]Interactive AI Terminal[/bold white] (Chat & Command JARVIS in natural language)")
-    console.print("  [bold green]2[/bold green] -> [bold white]Tony Stark Full Boot Sequence[/bold white] (Greeting + Highway to Hell)")
-    console.print("  [bold green]3[/bold green] -> [bold white]Spotify Play/Pause Toggle[/bold white]")
-    console.print("  [bold green]4[/bold green] -> [bold white]Refresh System Telemetry[/bold white]")
+    console.print("\n[bold cyan]─── AVAILABLE PROTOCOLS (PART 4: FULL VOICE LOOP) ───[/bold cyan]")
+    console.print("  [bold green]1[/bold green] -> [bold white]Interactive AI Chat Terminal[/bold white] (Type naturally to JARVIS)")
+    console.print("  [bold green]2[/bold green] -> [bold white]Push-to-Talk Microphone Mode[/bold white] (Press Enter & talk with your voice)")
+    console.print("  [bold green]3[/bold green] -> [bold white]Hands-Free Wake Word Mode[/bold white] (Always listening for 'Hey Jarvis')")
+    console.print("  [bold green]4[/bold green] -> [bold white]Tony Stark Full Boot Sequence[/bold white] (Greeting + Highway to Hell)")
+    console.print("  [bold green]5[/bold green] -> [bold white]Spotify Play/Pause Toggle[/bold white]")
+    console.print("  [bold green]6[/bold green] -> [bold white]Refresh System Telemetry[/bold white]")
     console.print("  [bold red]q[/bold red] -> [bold white]Exit[/bold white]\n")
 
     while True:
@@ -128,11 +159,15 @@ def main():
             if choice == "1":
                 conversational_console()
             elif choice == "2":
-                run_boot_sequence(play_intro_song=True)
+                push_to_talk_mode()
             elif choice == "3":
+                jarvis_listener.run_continuous_loop()
+            elif choice == "4":
+                run_boot_sequence(play_intro_song=True)
+            elif choice == "5":
                 SpotifyController.toggle_play()
                 log_info("Toggled Spotify playback.")
-            elif choice == "4":
+            elif choice == "6":
                 display_diagnostics()
             elif choice.lower() in ("q", "exit", "quit"):
                 log_info("Standing by, Sir.")

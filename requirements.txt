@@ -6,5 +6,8 @@ pydantic>=2.5.0
 # Text-to-Speech (Neural Voice Engine)
 edge-tts>=6.1.10
 
-# Audio handling
+# Audio handling & Speech
 aiohttp>=3.9.0
+SpeechRecognition>=3.10.0
+sounddevice>=0.4.6
+numpy>=1.26.0

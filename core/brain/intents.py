@@ -66,6 +66,15 @@ class IntentParser:
             res = ToolRegistry.set_volume(0)
             return ("Acoustic output has been muted, Sir.", res)
 
+        # Weather & Forecast
+        if any(k in t for k in ["weather", "forecast", "temperature", "how hot", "how cold", "is it raining"]):
+            city = None
+            city_match = re.search(r"in\s+([a-zA-Z\s]+)", t)
+            if city_match:
+                city = city_match.group(1).strip()
+            res = ToolRegistry.get_weather(city)
+            return (res.get("speech_text", "Atmospheric telemetry is unavailable, Sir."), res)
+
         # Time & Date
         if any(k in t for k in ["what time", "current time", "what's the time"]):
             res = ToolRegistry.get_time_and_date()

@@ -3,7 +3,7 @@ J.A.R.V.I.S. Tool & Capability Registry
 Defines functions the AI can execute to control macOS, media, and system utilities.
 """
 from datetime import datetime
-from typing import Dict, Any, Callable
+from typing import Dict, Any, Callable, Optional
 from config import settings
 from core.system.macos import (
     get_battery_status,
@@ -82,6 +82,12 @@ class ToolRegistry:
         }
 
     @staticmethod
+    def get_weather(city: Optional[str] = None) -> Dict[str, Any]:
+        """Retrieve real-time atmospheric forecast."""
+        from core.system.weather import WeatherService
+        return WeatherService.get_current_weather(city)
+
+    @staticmethod
     def get_system_telemetry() -> Dict[str, Any]:
         """Full diagnostic check of the host system."""
         return get_quick_diagnostics()
@@ -140,5 +146,15 @@ TOOL_DEFINITIONS = [
         "name": "get_system_telemetry",
         "description": "Returns quick system diagnostics including battery, volume, and running applications.",
         "parameters": {"type": "object", "properties": {}}
+    },
+    {
+        "name": "get_weather",
+        "description": "Returns current atmospheric conditions and weather forecast for a location.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "city": {"type": "string", "description": "Optional city name"}
+            }
+        }
     }
 ]
