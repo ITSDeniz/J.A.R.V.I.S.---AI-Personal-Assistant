@@ -126,10 +126,10 @@ body.sci-fi-theme {
 }
 
 .metric-pill.pill-weather {
-  width: 160px;
-  min-width: 160px;
-  max-width: 160px;
-  flex: 0 0 160px;
+  width: 175px;
+  min-width: 175px;
+  max-width: 175px;
+  flex: 0 0 175px;
 }
 
 .metric-label {
@@ -161,6 +161,17 @@ body.sci-fi-theme {
   color: #ffffff;
   display: inline-block;
   text-align: center;
+}
+
+#weatherDisplay {
+  font-family: var(--font-hud);
+  font-size: 0.85rem;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  display: block;
 }
 
 /* ========================================================

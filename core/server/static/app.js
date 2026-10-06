@@ -141,8 +141,11 @@ function updateTelemetryUI(data) {
   }
 
   // Weather
-  if (data.weather && data.weather.temp_c) {
-    weatherDisplay.innerText = `${data.weather.temp_c}°C ${data.weather.condition || ''}`;
+  if (data.weather && data.weather.temp_c !== undefined && data.weather.temp_c !== null) {
+    let cond = (data.weather.condition || '').trim();
+    cond = cond.replace(/\s+in area/i, '');
+    weatherDisplay.innerText = cond ? `${data.weather.temp_c}°C · ${cond}` : `${data.weather.temp_c}°C`;
+    weatherDisplay.title = `${data.weather.location || 'Local'}: ${data.weather.temp_c}°C, ${data.weather.condition || ''}`;
   }
 
   // Media Track
