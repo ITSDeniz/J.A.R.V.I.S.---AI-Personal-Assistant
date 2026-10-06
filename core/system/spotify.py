@@ -72,8 +72,23 @@ class SpotifyController:
 
     @staticmethod
     def pause() -> bool:
-        """Pause playback."""
-        script = 'tell application "Spotify" to pause'
+        """Pause playback safely if Spotify is running."""
+        script = '''
+        tell application "System Events"
+            set isRunning to (name of processes) contains "Spotify"
+        end tell
+        if isRunning then
+            tell application "Spotify"
+                try
+                    if player state is playing then
+                        pause
+                    end if
+                on error
+                    pause
+                end try
+            end tell
+        end if
+        '''
         return "Error" not in run_applescript(script)
 
     @staticmethod

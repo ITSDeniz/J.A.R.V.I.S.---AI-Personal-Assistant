@@ -182,6 +182,7 @@ document.querySelectorAll('.quick-chip').forEach(btn => {
 
 // 5. Tony Stark Protocol Button
 starkBtn.addEventListener('click', () => {
+  fetch('/api/spotify/pause', { method: 'POST' }).catch(() => {});
   fetch('/api/stark', { method: 'POST' });
 });
 

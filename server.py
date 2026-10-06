@@ -23,7 +23,7 @@ def start_hud(port: int = 8000, open_browser: bool = True):
         threading.Thread(target=_open_browser_delayed, args=(url,), daemon=True).start()
 
     log_success(f"HUD Server active. WebSocket gateway listening on {url}/ws")
-    uvicorn.run("core.server.app:app", host="127.0.0.1", port=port, log_level="warning")
+    uvicorn.run("core.server.app:app", host="127.0.0.1", port=port, log_level="warning", reload=True)
 
 if __name__ == "__main__":
     port = int(sys.argv[1]) if len(sys.argv) > 1 and sys.argv[1].isdigit() else 8000
