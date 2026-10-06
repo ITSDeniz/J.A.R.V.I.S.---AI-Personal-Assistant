@@ -117,6 +117,10 @@ async def execute_command(req: CommandRequest):
 @app.post("/api/stark")
 async def trigger_stark_protocol():
     """Initiate Tony Stark Highway to Hell protocol."""
+    try:
+        SpotifyController.pause()
+    except Exception:
+        pass
     jarvis_voice.speak("Initiating protocol: Highway to Hell, Sir.", block=False)
     res = StarkAudioPlayer.play_highway_to_hell(volume=settings.spotify.default_volume)
     await broadcast_message({

@@ -73,9 +73,16 @@ class StarkAudioPlayer:
     def play_highway_to_hell(cls, volume: int = 75) -> Dict[str, Any]:
         """
         Executes Tony Stark Highway to Hell protocol:
-        1. If local intro.mp3 is found, plays it directly (no ads, no skips).
-        2. Otherwise, triggers Spotify playback.
+        1. Pauses any existing music playing in Spotify.
+        2. If local intro.mp3 is found, plays it directly (no ads, no skips).
+        3. Otherwise, triggers Spotify playback.
         """
+        # Immediately pause Spotify if it is currently playing another song
+        try:
+            SpotifyController.pause()
+        except Exception:
+            pass
+
         local_file = cls.get_local_intro_path()
         if local_file:
             log_info(f"Playing local audio: {local_file.name}")
