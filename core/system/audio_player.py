@@ -4,6 +4,7 @@ Plays local startup sounds or delegates to Spotify.
 Enables zero-skip, zero-ad playback for the Tony Stark protocol.
 """
 import os
+import atexit
 import subprocess
 from pathlib import Path
 from typing import Dict, Any, Optional
@@ -56,10 +57,17 @@ class StarkAudioPlayer:
 
     @classmethod
     def stop_local_file(cls):
-        """Stop local audio playback."""
+        """Stop local audio playback immediately."""
         if cls._current_proc and cls._current_proc.poll() is None:
-            cls._current_proc.terminate()
+            try:
+                cls._current_proc.terminate()
+            except Exception:
+                pass
             cls._current_proc = None
+        try:
+            subprocess.run(["killall", "afplay"], capture_output=True)
+        except Exception:
+            pass
 
     @classmethod
     def play_highway_to_hell(cls, volume: int = 75) -> Dict[str, Any]:
@@ -83,3 +91,6 @@ class StarkAudioPlayer:
             res = SpotifyController.play_highway_to_hell(volume=volume)
             res["source"] = "spotify"
             return res
+
+# Ensure any spawned audio player terminates when Python exits
+atexit.register(StarkAudioPlayer.stop_local_file)
