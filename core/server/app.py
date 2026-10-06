@@ -106,13 +106,15 @@ async def start_telemetry_heartbeat():
 
 @app.post("/api/command")
 async def execute_command(req: CommandRequest):
-    """Execute a text command and broadcast results."""
-    res = jarvis_agent.process_command(req.command, speak_output=True)
+    """Execute a text command and broadcast results immediately, speaking concurrently."""
+    res = jarvis_agent.process_command(req.command, speak_output=False)
     await broadcast_message({
         "type": "conversation",
         "user": req.command,
         "jarvis": res["text"]
     })
+    if res.get("text"):
+        asyncio.create_task(asyncio.to_thread(jarvis_voice.speak, res["text"]))
     return res
 
 @app.post("/api/stark")
@@ -122,13 +124,13 @@ async def trigger_stark_protocol():
         SpotifyController.pause()
     except Exception:
         pass
-    jarvis_voice.speak("Initiating protocol: Highway to Hell, Sir.", block=False)
-    res = StarkAudioPlayer.play_highway_to_hell(volume=settings.spotify.default_volume)
     await broadcast_message({
         "type": "stark_protocol",
         "status": "active",
-        "song": res.get("song", "Highway to Hell")
+        "song": "Highway to Hell"
     })
+    jarvis_voice.speak("Initiating protocol: Highway to Hell, Sir.", block=False)
+    res = StarkAudioPlayer.play_highway_to_hell(volume=settings.spotify.default_volume)
     return res
 
 @app.post("/api/spotify/{action}")
@@ -170,15 +172,18 @@ async def websocket_endpoint(websocket: WebSocket):
 
             if action == "command":
                 cmd = msg.get("text", "")
-                res = await asyncio.to_thread(jarvis_agent.process_command, cmd, True)
+                res = await asyncio.to_thread(jarvis_agent.process_command, cmd, False)
                 await broadcast_message({
                     "type": "conversation",
                     "user": cmd,
                     "jarvis": res["text"]
                 })
+                if res.get("text"):
+                    asyncio.create_task(asyncio.to_thread(jarvis_voice.speak, res["text"]))
             elif action == "stark":
+                await broadcast_message({"type": "stark_protocol", "status": "active", "song": "Highway to Hell"})
+                jarvis_voice.speak("Initiating protocol: Highway to Hell, Sir.", block=False)
                 res = StarkAudioPlayer.play_highway_to_hell(volume=settings.spotify.default_volume)
-                await broadcast_message({"type": "stark_protocol", "data": res})
             elif action == "voice_input":
                 if _voice_lock.locked():
                     await websocket.send_json({"type": "voice_status", "status": "busy", "message": "Processor busy"})
@@ -187,12 +192,14 @@ async def websocket_endpoint(websocket: WebSocket):
                         # Non-blocking execution in threadpool to prevent freezing WebSocket
                         cmd = await asyncio.to_thread(jarvis_stt.listen_and_transcribe, "Listening via HUD trigger...")
                         if cmd:
-                            res = await asyncio.to_thread(jarvis_agent.process_command, cmd, True)
+                            res = await asyncio.to_thread(jarvis_agent.process_command, cmd, False)
                             await broadcast_message({
                                 "type": "conversation",
                                 "user": cmd,
                                 "jarvis": res["text"]
                             })
+                            if res.get("text"):
+                                asyncio.create_task(asyncio.to_thread(jarvis_voice.speak, res["text"]))
                         else:
                             await broadcast_message({
                                 "type": "voice_status",

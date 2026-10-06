@@ -106,11 +106,14 @@ function connectWebSocket() {
         listeningTimer = null;
       }
       isListening = false;
-      appendTranscript(data.user, data.jarvis);
-      triggerSpeechAnimation();
+      // If user text was already optimistically appended, avoid duplicate bubble
+      const lastEntry = transcriptFeed.lastElementChild;
+      const isAlreadyAppended = lastEntry && lastEntry.classList.contains('user-entry') && lastEntry.querySelector('p')?.innerText === data.user;
+      appendTranscript(isAlreadyAppended ? null : data.user, data.jarvis);
+      triggerSpeechAnimation(data.jarvis);
     } else if (data.type === 'stark_protocol') {
       appendTranscript('System Protocol', `Tony Stark Protocol: ${data.song || 'Highway to Hell'} Active.`);
-      triggerSpeechAnimation(3000);
+      triggerSpeechAnimation('', 4500);
     }
   };
 
@@ -190,11 +193,18 @@ function appendTranscript(userText, jarvisText) {
   transcriptFeed.scrollTop = transcriptFeed.scrollHeight;
 }
 
-function triggerSpeechAnimation(durationMs = 4000) {
+function triggerSpeechAnimation(text = '', defaultMs = 3500) {
   isSpeaking = true;
   audioActivityLevel = 1.0;
   promptText.innerText = '⚡ J.A.R.V.I.S. VOCAL ENGINE TRANSMITTING...';
   promptText.style.color = '#00f2fe';
+
+  // Dynamically scale animation time based on speech length (words * 280ms + 1200ms padding)
+  let durationMs = defaultMs;
+  if (text) {
+    const wordCount = text.trim().split(/\s+/).length;
+    durationMs = Math.max(2000, Math.min(10000, wordCount * 280 + 1200));
+  }
 
   setTimeout(() => {
     isSpeaking = false;
@@ -210,6 +220,9 @@ commandForm.addEventListener('submit', (e) => {
   if (!text) return;
 
   commandInput.value = '';
+  // Optimistically display the user's message immediately
+  appendTranscript(text, null);
+
   if (ws && ws.readyState === WebSocket.OPEN) {
     ws.send(JSON.stringify({ action: 'command', text: text }));
   } else {
@@ -225,6 +238,8 @@ commandForm.addEventListener('submit', (e) => {
 document.querySelectorAll('.quick-chip').forEach(btn => {
   btn.addEventListener('click', () => {
     const cmd = btn.getAttribute('data-cmd');
+    if (!cmd) return;
+    appendTranscript(cmd, null);
     if (ws && ws.readyState === WebSocket.OPEN) {
       ws.send(JSON.stringify({ action: 'command', text: cmd }));
     }
