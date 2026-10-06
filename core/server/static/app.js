@@ -26,7 +26,40 @@ const ctx = canvas.getContext('2d');
 
 let ws = null;
 let isSpeaking = false;
+let isListening = false;
+let listeningTimer = null;
 let audioActivityLevel = 0.2; // 0.2 idle, 1.0 active
+
+function resetPromptText() {
+  isListening = false;
+  if (listeningTimer) {
+    clearTimeout(listeningTimer);
+    listeningTimer = null;
+  }
+  if (!isSpeaking) {
+    promptText.innerText = 'CLICK ARC REACTOR OR PRESS [SPACEBAR] TO TALK';
+    promptText.style.color = '#7dd3fc';
+  }
+}
+
+function startListening() {
+  if (isListening || isSpeaking) return;
+  isListening = true;
+  promptText.innerText = '🎤 LISTENING TO VOICE COMMAND...';
+  promptText.style.color = '#f6d365';
+
+  if (listeningTimer) clearTimeout(listeningTimer);
+  // Auto-dismiss safety timer (guarantees text disappears if silence or dropped request)
+  listeningTimer = setTimeout(() => {
+    promptText.innerText = '▲ TIMEOUT // NO SPEECH DETECTED';
+    promptText.style.color = '#f59e0b';
+    setTimeout(resetPromptText, 1500);
+  }, 7500);
+
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify({ action: 'voice_input' }));
+  }
+}
 
 // 1. Clock Updates
 function updateClock() {
@@ -53,7 +86,26 @@ function connectWebSocket() {
 
     if (data.type === 'telemetry') {
       updateTelemetryUI(data.data);
+    } else if (data.type === 'voice_status') {
+      if (listeningTimer) {
+        clearTimeout(listeningTimer);
+        listeningTimer = null;
+      }
+      if (data.status === 'idle') {
+        promptText.innerText = `▲ ${data.message || 'NO SPEECH DETECTED'}`;
+        promptText.style.color = '#f59e0b';
+        setTimeout(resetPromptText, 1500);
+      } else if (data.status === 'busy') {
+        promptText.innerText = '▲ ENGINE BUSY...';
+        promptText.style.color = '#f59e0b';
+        setTimeout(resetPromptText, 1000);
+      }
     } else if (data.type === 'conversation') {
+      if (listeningTimer) {
+        clearTimeout(listeningTimer);
+        listeningTimer = null;
+      }
+      isListening = false;
       appendTranscript(data.user, data.jarvis);
       triggerSpeechAnimation();
     } else if (data.type === 'stark_protocol') {
@@ -147,8 +199,7 @@ function triggerSpeechAnimation(durationMs = 4000) {
   setTimeout(() => {
     isSpeaking = false;
     audioActivityLevel = 0.2;
-    promptText.innerText = 'CLICK ARC REACTOR OR PRESS [SPACEBAR] TO TALK';
-    promptText.style.color = '#7dd3fc';
+    resetPromptText();
   }, durationMs);
 }
 
@@ -199,18 +250,15 @@ volumeSlider.addEventListener('input', (e) => {
 
 // 7. Arc Reactor Click to Talk
 arcReactor.addEventListener('click', () => {
-  promptText.innerText = '🎤 LISTENING TO VOICE COMMAND...';
-  promptText.style.color = '#f6d365';
-  if (ws && ws.readyState === WebSocket.OPEN) {
-    ws.send(JSON.stringify({ action: 'voice_input' }));
-  }
+  startListening();
 });
 
 // Spacebar push to talk
 window.addEventListener('keydown', (e) => {
   if (e.code === 'Space' && document.activeElement !== commandInput) {
     e.preventDefault();
-    arcReactor.click();
+    if (e.repeat) return; // Prevent spamming duplicate audio triggers when holding spacebar
+    startListening();
   }
 });
 

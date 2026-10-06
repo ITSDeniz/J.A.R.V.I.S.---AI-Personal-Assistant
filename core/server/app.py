@@ -32,6 +32,7 @@ app = FastAPI(title="J.A.R.V.I.S. HUD Gateway", version=settings.version)
 
 # Active WebSocket connections
 active_connections: Set[WebSocket] = set()
+_voice_lock = asyncio.Lock()
 
 class CommandRequest(BaseModel):
     command: str
@@ -169,7 +170,7 @@ async def websocket_endpoint(websocket: WebSocket):
 
             if action == "command":
                 cmd = msg.get("text", "")
-                res = jarvis_agent.process_command(cmd, speak_output=True)
+                res = await asyncio.to_thread(jarvis_agent.process_command, cmd, True)
                 await broadcast_message({
                     "type": "conversation",
                     "user": cmd,
@@ -179,15 +180,25 @@ async def websocket_endpoint(websocket: WebSocket):
                 res = StarkAudioPlayer.play_highway_to_hell(volume=settings.spotify.default_volume)
                 await broadcast_message({"type": "stark_protocol", "data": res})
             elif action == "voice_input":
-                # Trigger single-turn voice transcription from server mic
-                cmd = jarvis_stt.listen_and_transcribe(prompt="Listening via HUD trigger...")
-                if cmd:
-                    res = jarvis_agent.process_command(cmd, speak_output=True)
-                    await broadcast_message({
-                        "type": "conversation",
-                        "user": cmd,
-                        "jarvis": res["text"]
-                    })
+                if _voice_lock.locked():
+                    await websocket.send_json({"type": "voice_status", "status": "busy", "message": "Processor busy"})
+                else:
+                    async with _voice_lock:
+                        # Non-blocking execution in threadpool to prevent freezing WebSocket
+                        cmd = await asyncio.to_thread(jarvis_stt.listen_and_transcribe, "Listening via HUD trigger...")
+                        if cmd:
+                            res = await asyncio.to_thread(jarvis_agent.process_command, cmd, True)
+                            await broadcast_message({
+                                "type": "conversation",
+                                "user": cmd,
+                                "jarvis": res["text"]
+                            })
+                        else:
+                            await broadcast_message({
+                                "type": "voice_status",
+                                "status": "idle",
+                                "message": "No command detected"
+                            })
             elif action == "ping":
                 await websocket.send_json({"type": "pong"})
 
