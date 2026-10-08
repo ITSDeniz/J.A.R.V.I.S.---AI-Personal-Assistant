@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/style.css?v=2.3">
+  <link rel="stylesheet" href="/static/style.css?v=3.0">
 </head>
 <body class="sci-fi-theme">
   <div class="hud-container">
@@ -103,13 +103,125 @@
       <section class="hud-center">
         <div class="arc-reactor-wrapper" id="arcReactor" title="Click Arc Reactor to Speak!">
           <div class="reactor-outer-ring"></div>
-          <div class="reactor-spokes"></div>
           <div class="reactor-middle-ring"></div>
-          <div class="reactor-segmented-ring"></div>
-          <div class="reactor-core">
-            <div class="core-glow"></div>
-            <div class="core-symbol">⚡</div>
-          </div>
+          
+          <!-- STARK MARK L / BLEEDING EDGE INVERTED TRIANGULAR ARC REACTOR -->
+          <svg class="stark-triangular-reactor" viewBox="0 0 240 250" width="220" height="230" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <!-- Cyan Neon Glow Filter -->
+              <filter id="arcCyanGlow" x="-30%" y="-30%" width="160%" height="160%">
+                <feGaussianBlur stdDeviation="3.5" result="blur1" />
+                <feGaussianBlur stdDeviation="8" result="blur2" />
+                <feMerge>
+                  <feMergeNode in="blur2" />
+                  <feMergeNode in="blur1" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+
+              <!-- Intense Photon Core Glow -->
+              <filter id="arcCoreGlow" x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur stdDeviation="6" result="coreBlur1" />
+                <feGaussianBlur stdDeviation="15" result="coreBlur2" />
+                <feMerge>
+                  <feMergeNode in="coreBlur2" />
+                  <feMergeNode in="coreBlur1" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+
+              <!-- Titanium Dark Chassis Gradient -->
+              <linearGradient id="chassisGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="#0c233c" />
+                <stop offset="50%" stop-color="#061220" />
+                <stop offset="100%" stop-color="#020812" />
+              </linearGradient>
+
+              <!-- Radiant Cyan Energy Conduit Gradient -->
+              <linearGradient id="energyBeam" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="#ffffff" />
+                <stop offset="25%" stop-color="#70ffff" />
+                <stop offset="70%" stop-color="#00f2fe" />
+                <stop offset="100%" stop-color="#0088cc" />
+              </linearGradient>
+
+              <!-- Core Radiant Photon Gradient -->
+              <radialGradient id="reactorPhotonCore" cx="50%" cy="38%" r="62%">
+                <stop offset="0%" stop-color="#ffffff" />
+                <stop offset="25%" stop-color="#e0ffff" />
+                <stop offset="55%" stop-color="#00f2fe" />
+                <stop offset="85%" stop-color="#0284c7" />
+                <stop offset="100%" stop-color="#034870" />
+              </radialGradient>
+            </defs>
+
+            <!-- Ambient Floor Reflection Bar -->
+            <line x1="30" y1="236" x2="210" y2="236" stroke="#00f2fe" stroke-width="2.5" opacity="0.85" filter="url(#arcCyanGlow)" />
+            <line x1="60" y1="236" x2="180" y2="236" stroke="#ffffff" stroke-width="1.5" opacity="0.9" />
+
+            <!-- 1. OUTER TITANIUM CHASSIS FRAME -->
+            <path class="reactor-outer-armor" d="M 44 48 L 76 28 L 164 28 L 196 48 L 180 148 L 152 216 L 88 216 L 60 148 Z" 
+                  fill="url(#chassisGrad)" stroke="#00f2fe" stroke-width="2.2" stroke-opacity="0.9" />
+
+            <!-- 2. BEVELED INNER ARMOR CASING -->
+            <path class="reactor-inner-casing" d="M 52 54 L 80 36 L 160 36 L 188 54 L 173 144 L 146 208 L 94 208 L 67 144 Z" 
+                  fill="#040e1c" stroke="#00d2f0" stroke-width="1.5" stroke-opacity="0.75" />
+
+            <!-- 3. TOP MECHANICAL DETAIL / COMMAND PLATE -->
+            <rect x="98" y="22" width="44" height="10" rx="3" fill="#09223a" stroke="#00f2fe" stroke-width="1.2" />
+            <circle cx="120" cy="27" r="2.5" fill="#ffffff" filter="url(#arcCyanGlow)" />
+            <rect x="52" y="38" width="16" height="8" rx="2" fill="#071b30" stroke="#00f2fe" stroke-width="1" stroke-opacity="0.7" />
+            <rect x="172" y="38" width="16" height="8" rx="2" fill="#071b30" stroke="#00f2fe" stroke-width="1" stroke-opacity="0.7" />
+
+            <!-- Top Center Hex Node -->
+            <polygon points="120,38 132,44 132,56 120,62 108,56 108,44" fill="#082038" stroke="#00f2fe" stroke-width="1.5" filter="url(#arcCyanGlow)" />
+            <polygon points="120,42 128,46 128,54 120,58 112,54 112,46" fill="url(#energyBeam)" opacity="0.95" />
+
+            <!-- Left & Right Top Node Accents -->
+            <polygon points="76,46 86,40 96,46 96,56 86,62 76,56" fill="#082038" stroke="#00f2fe" stroke-width="1.2" />
+            <circle cx="86" cy="51" r="2.5" fill="#70ffff" filter="url(#arcCyanGlow)" />
+            <polygon points="164,46 154,40 144,46 144,56 154,62 164,56" fill="#082038" stroke="#00f2fe" stroke-width="1.2" />
+            <circle cx="154" cy="51" r="2.5" fill="#70ffff" filter="url(#arcCyanGlow)" />
+
+            <!-- Lateral Nano-Tech Vent Ribs (Left & Right) -->
+            <path d="M 45 74 L 57 78 L 55 88 L 43 84 Z" fill="#0a2440" stroke="#00f2fe" stroke-width="1.2" />
+            <path d="M 48 94 L 60 98 L 58 108 L 46 104 Z" fill="#0a2440" stroke="#00f2fe" stroke-width="1.2" />
+            <path d="M 52 114 L 64 118 L 62 128 L 50 124 Z" fill="#0a2440" stroke="#00f2fe" stroke-width="1.2" />
+            <path d="M 195 74 L 183 78 L 185 88 L 197 84 Z" fill="#0a2440" stroke="#00f2fe" stroke-width="1.2" />
+            <path d="M 192 94 L 180 98 L 182 108 L 194 104 Z" fill="#0a2440" stroke="#00f2fe" stroke-width="1.2" />
+            <path d="M 188 114 L 176 118 L 178 128 L 190 124 Z" fill="#0a2440" stroke="#00f2fe" stroke-width="1.2" />
+
+            <!-- 4. OUTER CONDUIT NEON CHANNELS -->
+            <polygon class="reactor-energy-track track-outer" points="66,70 174,70 120,186" fill="none" stroke="#00f2fe" stroke-width="2.5" filter="url(#arcCyanGlow)" />
+            <polygon class="reactor-energy-track track-inner" points="74,78 166,78 120,178" fill="none" stroke="#00e5ff" stroke-width="1.8" />
+
+            <!-- 5. FLANKING NEON LIGHT CONDUITS -->
+            <!-- Top Horizontal Light Bar -->
+            <path class="reactor-conduit conduit-top" d="M 82 72 L 158 72 L 154 80 L 86 80 Z" fill="url(#energyBeam)" filter="url(#arcCyanGlow)" />
+            <!-- Left Slanted Light Conduit -->
+            <path class="reactor-conduit conduit-left" d="M 72 86 L 82 86 L 108 152 L 98 156 Z" fill="url(#energyBeam)" filter="url(#arcCyanGlow)" />
+            <path d="M 86 90 L 93 90 L 112 144 L 105 147 Z" fill="#ffffff" opacity="0.85" />
+            <!-- Right Slanted Light Conduit -->
+            <path class="reactor-conduit conduit-right" d="M 168 86 L 158 86 L 132 152 L 142 156 Z" fill="url(#energyBeam)" filter="url(#arcCyanGlow)" />
+            <path d="M 154 90 L 147 90 L 128 144 L 135 147 Z" fill="#ffffff" opacity="0.85" />
+
+            <!-- Lower Base Light Bar -->
+            <path class="reactor-conduit conduit-bottom" d="M 110 184 L 130 184 L 126 198 L 114 198 Z" fill="url(#energyBeam)" filter="url(#arcCyanGlow)" />
+
+            <!-- 6. THE CENTRAL INVERTED TRIANGULAR PHOTON CORE -->
+            <!-- Housing Border -->
+            <polygon class="reactor-core-frame" points="86,96 154,96 120,166" fill="#041224" stroke="#00f2fe" stroke-width="3" filter="url(#arcCyanGlow)" />
+            
+            <!-- RADIANT PHOTON TRIANGLE (Main Core Light Emitter) -->
+            <polygon class="reactor-triangle-core" points="90,100 150,100 120,162" fill="url(#reactorPhotonCore)" filter="url(#arcCoreGlow)" />
+
+            <!-- Blazing White Center Heart -->
+            <polygon class="reactor-triangle-heart" points="98,104 142,104 120,148" fill="#ffffff" opacity="0.95" />
+
+            <!-- Central Arc Focus Node -->
+            <circle cx="120" cy="116" r="4.5" fill="#ffffff" stroke="#00f2fe" stroke-width="1.5" filter="url(#arcCoreGlow)" />
+          </svg>
+
           <div class="reactor-pulse-waves"></div>
         </div>
 

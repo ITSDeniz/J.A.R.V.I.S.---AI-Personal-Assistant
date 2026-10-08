@@ -36,6 +36,10 @@ function resetPromptText() {
     clearTimeout(listeningTimer);
     listeningTimer = null;
   }
+  if (arcReactor) {
+    arcReactor.classList.remove('listening');
+    arcReactor.classList.remove('speaking');
+  }
   if (!isSpeaking) {
     promptText.innerText = 'CLICK ARC REACTOR OR PRESS [SPACEBAR] TO TALK';
     promptText.style.color = '#7dd3fc';
@@ -45,6 +49,9 @@ function resetPromptText() {
 function startListening() {
   if (isListening || isSpeaking) return;
   isListening = true;
+  if (arcReactor) {
+    arcReactor.classList.add('listening');
+  }
   promptText.innerText = '🎤 LISTENING TO VOICE COMMAND...';
   promptText.style.color = '#f6d365';
 
@@ -199,6 +206,10 @@ function appendTranscript(userText, jarvisText) {
 function triggerSpeechAnimation(text = '', defaultMs = 3500) {
   isSpeaking = true;
   audioActivityLevel = 1.0;
+  if (arcReactor) {
+    arcReactor.classList.remove('listening');
+    arcReactor.classList.add('speaking');
+  }
   promptText.innerText = '⚡ J.A.R.V.I.S. VOCAL ENGINE TRANSMITTING...';
   promptText.style.color = '#00f2fe';
 
