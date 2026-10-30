@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/style.css?v=3.0">
+  <link rel="stylesheet" href="/static/style.css?v=3.1">
 </head>
 <body class="sci-fi-theme">
   <div class="hud-container">
@@ -68,20 +68,23 @@
           </div>
         </div>
 
-        <!-- STARK MUSIC PROTOCOL CARD -->
+        <!-- MEDIA & STARTUP THEME CARD -->
         <div class="panel-header mt-lg">
           <span class="panel-icon">🎵</span>
-          <h2>MEDIA & STARK PROTOCOL</h2>
+          <h2>MEDIA & STARTUP AUDIO</h2>
         </div>
 
-        <div class="telemetry-card stark-card">
-          <button id="starkBtn" class="stark-protocol-btn">
-            <span class="flame-icon">🔥</span>
-            <div class="btn-text">
-              <span class="btn-title">TONY STARK PROTOCOL</span>
-              <span class="btn-subtitle">BLAST "HIGHWAY TO HELL"</span>
+        <div class="telemetry-card media-card">
+          <div class="setting-toggle-row">
+            <div class="setting-info">
+              <span class="setting-title">STARTUP AUDIO</span>
+              <span class="setting-subtitle">Highway to Hell on boot</span>
             </div>
-          </button>
+            <label class="hud-switch" title="Toggle Highway to Hell at startup">
+              <input type="checkbox" id="bootMusicToggle" checked>
+              <span class="hud-slider-toggle"></span>
+            </label>
+          </div>
 
           <div class="music-track-box">
             <div class="track-status-dot" id="musicDot"></div>

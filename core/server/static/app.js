@@ -10,7 +10,7 @@ const weatherDisplay = document.getElementById('weatherDisplay');
 const connStatus = document.getElementById('connStatus');
 const volumeSlider = document.getElementById('volumeSlider');
 const volumeVal = document.getElementById('volumeVal');
-const starkBtn = document.getElementById('starkBtn');
+const bootMusicToggle = document.getElementById('bootMusicToggle');
 const trackName = document.getElementById('trackName');
 const trackArtist = document.getElementById('trackArtist');
 const playPauseBtn = document.getElementById('playPauseBtn');
@@ -118,9 +118,13 @@ function connectWebSocket() {
       const isAlreadyAppended = lastEntry && lastEntry.classList.contains('user-entry') && lastEntry.querySelector('p')?.innerText === data.user;
       appendTranscript(isAlreadyAppended ? null : data.user, data.jarvis);
       triggerSpeechAnimation(data.jarvis);
-    } else if (data.type === 'stark_protocol') {
-      appendTranscript('System Protocol', `Tony Stark Protocol: ${data.song || 'Highway to Hell'} Active.`);
+    } else if (data.type === 'stark_protocol' || data.type === 'media_status') {
+      appendTranscript('System Protocol', `Startup Theme: ${data.song || 'Highway to Hell'} Active.`);
       triggerSpeechAnimation('', 4500);
+    } else if (data.type === 'settings') {
+      if (bootMusicToggle && data.data && data.data.play_boot_music !== undefined) {
+        bootMusicToggle.checked = Boolean(data.data.play_boot_music);
+      }
     }
   };
 
@@ -167,6 +171,11 @@ function updateTelemetryUI(data) {
       musicDot.style.background = dotColor;
       musicDot.style.boxShadow = `0 0 10px ${dotColor}`;
     }
+  }
+
+  // Startup theme toggle sync
+  if (data.play_boot_music !== undefined && bootMusicToggle) {
+    bootMusicToggle.checked = Boolean(data.play_boot_music);
   }
 }
 
@@ -260,11 +269,17 @@ document.querySelectorAll('.quick-chip').forEach(btn => {
   });
 });
 
-// 5. Tony Stark Protocol Button
-starkBtn.addEventListener('click', () => {
-  fetch('/api/spotify/pause', { method: 'POST' }).catch(() => {});
-  fetch('/api/stark', { method: 'POST' });
-});
+// 5. Startup Theme Toggle
+if (bootMusicToggle) {
+  bootMusicToggle.addEventListener('change', (e) => {
+    const enabled = e.target.checked;
+    fetch('/api/settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ play_boot_music: enabled })
+    }).catch(() => {});
+  });
+}
 
 // 6. Media Controls
 playPauseBtn.addEventListener('click', () => fetch('/api/spotify/toggle', { method: 'POST' }));

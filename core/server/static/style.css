@@ -258,49 +258,98 @@ body.sci-fi-theme {
 }
 
 /* ========================================================
-   STARK MUSIC CARD
+   MEDIA & STARTUP AUDIO CARD
    ======================================================== */
 .mt-lg {
   margin-top: 20px;
 }
 
-.stark-protocol-btn {
+.setting-toggle-row {
   display: flex;
   align-items: center;
-  gap: 12px;
-  background: linear-gradient(135deg, rgba(255, 65, 108, 0.25), rgba(255, 75, 43, 0.35));
-  border: 1px solid #ff416c;
-  padding: 12px 14px;
+  justify-content: space-between;
+  background: rgba(0, 20, 45, 0.5);
+  border: 1px solid var(--border-cyan);
   border-radius: 8px;
-  cursor: pointer;
+  padding: 10px 14px;
+  margin-bottom: 12px;
   transition: all 0.2s ease;
-  box-shadow: 0 0 15px rgba(255, 65, 108, 0.3);
-  text-align: left;
 }
 
-.stark-protocol-btn:hover {
-  transform: translateY(-2px);
-  background: linear-gradient(135deg, rgba(255, 65, 108, 0.4), rgba(255, 75, 43, 0.5));
-  box-shadow: 0 0 25px rgba(255, 65, 108, 0.6);
+.setting-toggle-row:hover {
+  background: rgba(0, 30, 65, 0.6);
+  border-color: var(--border-cyan-bright);
 }
 
-.flame-icon {
-  font-size: 1.8rem;
+.setting-info {
+  display: flex;
+  flex-direction: column;
 }
 
-.btn-title {
-  display: block;
+.setting-title {
   font-family: var(--font-hud);
-  font-size: 0.85rem;
-  color: #fff;
+  font-size: 0.8rem;
   letter-spacing: 1px;
+  color: #fff;
 }
 
-.btn-subtitle {
-  display: block;
+.setting-subtitle {
   font-family: var(--font-mono);
-  font-size: 0.7rem;
-  color: #fca5a5;
+  font-size: 0.68rem;
+  color: #7dd3fc;
+  letter-spacing: 0.5px;
+}
+
+/* Sci-Fi Cyan Toggle Switch */
+.hud-switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.hud-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.hud-slider-toggle {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(0, 242, 254, 0.3);
+  transition: 0.3s;
+  border-radius: 24px;
+}
+
+.hud-slider-toggle:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 3px;
+  bottom: 3px;
+  background-color: #64748b;
+  transition: 0.3s;
+  border-radius: 50%;
+}
+
+.hud-switch input:checked + .hud-slider-toggle {
+  background-color: rgba(0, 242, 254, 0.25);
+  border-color: var(--border-cyan-bright);
+  box-shadow: 0 0 10px rgba(0, 242, 254, 0.4);
+}
+
+.hud-switch input:checked + .hud-slider-toggle:before {
+  transform: translateX(20px);
+  background-color: #00f2fe;
+  box-shadow: 0 0 8px #00f2fe;
 }
 
 .music-track-box {

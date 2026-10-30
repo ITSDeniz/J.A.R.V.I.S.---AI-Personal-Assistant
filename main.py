@@ -131,7 +131,7 @@ def main():
         return
 
     if "--boot" in sys.argv:
-        run_boot_sequence(play_intro_song="--music" in sys.argv)
+        run_boot_sequence(play_intro_song="--music" in sys.argv or settings.play_boot_music)
         return
 
     if "--listen" in sys.argv:
@@ -154,7 +154,7 @@ def main():
     console.print("  [bold green]2[/bold green] -> [bold white]Push-to-Talk Microphone Mode[/bold white] (Press Enter & talk with your voice)")
     console.print("  [bold green]3[/bold green] -> [bold white]Hands-Free Wake Word Mode[/bold white] (Always listening for 'Hey Jarvis')")
     console.print("  [bold green]4[/bold green] -> [bold white]Interactive AI Chat Terminal[/bold white] (Type naturally to JARVIS)")
-    console.print("  [bold green]5[/bold green] -> [bold white]Tony Stark Full Boot Sequence[/bold white] (Greeting + Highway to Hell)")
+    console.print("  [bold green]5[/bold green] -> [bold white]J.A.R.V.I.S. Startup Sequence[/bold white] (Greeting + Highway to Hell)")
     console.print("  [bold green]6[/bold green] -> [bold white]Spotify Play/Pause Toggle[/bold white]")
     console.print("  [bold green]7[/bold green] -> [bold white]Refresh System Telemetry[/bold white]")
     console.print("  [bold red]q[/bold red] -> [bold white]Exit[/bold white]\n")

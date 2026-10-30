@@ -2,10 +2,12 @@
 J.A.R.V.I.S. System Configuration
 Central configuration for all assistant subsystems.
 """
+import json
 from pathlib import Path
 from pydantic import BaseModel, Field
 
 BASE_DIR = Path(__file__).resolve().parent
+USER_SETTINGS_PATH = BASE_DIR / "assets" / "user_settings.json"
 
 class SpotifyConfig(BaseModel):
     enabled: bool = True
@@ -40,9 +42,40 @@ class JarvisSettings(BaseModel):
     assistant_name: str = "J.A.R.V.I.S."
     owner_name: str = "Sir"
     version: str = "1.0.0"
+    play_boot_music: bool = True
     spotify: SpotifyConfig = Field(default_factory=SpotifyConfig)
     voice: VoiceConfig = Field(default_factory=VoiceConfig)
     brain: BrainConfig = Field(default_factory=BrainConfig)
 
+    def load_user_overrides(self):
+        """Load persistent user preferences from disk if present."""
+        if USER_SETTINGS_PATH.exists():
+            try:
+                with open(USER_SETTINGS_PATH, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                if "play_boot_music" in data:
+                    self.play_boot_music = bool(data["play_boot_music"])
+            except Exception:
+                pass
+
+    def set_play_boot_music(self, enabled: bool):
+        """Update and persist the boot music preference."""
+        self.play_boot_music = enabled
+        try:
+            USER_SETTINGS_PATH.parent.mkdir(parents=True, exist_ok=True)
+            data = {}
+            if USER_SETTINGS_PATH.exists():
+                try:
+                    with open(USER_SETTINGS_PATH, "r", encoding="utf-8") as f:
+                        data = json.load(f)
+                except Exception:
+                    data = {}
+            data["play_boot_music"] = enabled
+            with open(USER_SETTINGS_PATH, "w", encoding="utf-8") as f:
+                json.dump(data, f, indent=2)
+        except Exception:
+            pass
+
 # Global settings instance
 settings = JarvisSettings()
+settings.load_user_overrides()

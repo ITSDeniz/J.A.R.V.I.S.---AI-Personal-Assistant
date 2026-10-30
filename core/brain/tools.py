@@ -21,7 +21,7 @@ class ToolRegistry:
 
     @staticmethod
     def play_highway_to_hell() -> Dict[str, Any]:
-        """Activate the Tony Stark Highway to Hell protocol."""
+        """Activate the Highway to Hell startup theme."""
         return StarkAudioPlayer.play_highway_to_hell(volume=settings.spotify.default_volume)
 
     @staticmethod

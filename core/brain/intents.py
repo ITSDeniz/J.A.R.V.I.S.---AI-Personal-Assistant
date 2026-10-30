@@ -21,7 +21,7 @@ class IntentParser:
         ):
             res = ToolRegistry.play_highway_to_hell()
             return (
-                "Initiating the Tony Stark protocol. Blasting Highway to Hell, Sir.",
+                "Initiating startup theme. Blasting Highway to Hell, Sir.",
                 res
             )
 

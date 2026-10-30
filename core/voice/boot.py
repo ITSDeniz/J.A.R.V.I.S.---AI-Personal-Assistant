@@ -44,8 +44,8 @@ def run_boot_sequence(play_intro_song: bool = False):
     jarvis_voice.speak(greeting, block=True)
     
     if play_intro_song:
-        time.sleep(0.5)
-        log_info("Initializing Tony Stark music protocol...")
-        jarvis_voice.speak("Initiating protocol: Highway to Hell.", block=True)
+        time.sleep(0.4)
+        log_info("Initializing startup audio theme...")
+        jarvis_voice.speak("Initiating startup theme: Highway to Hell.", block=True)
         StarkAudioPlayer.play_highway_to_hell(volume=settings.spotify.default_volume)
-        log_success("Music protocol active.")
+        log_success("Startup theme active.")

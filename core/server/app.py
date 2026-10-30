@@ -60,7 +60,7 @@ async def get_telemetry():
             "is_running": True,
             "track": {
                 "name": "Highway To Hell",
-                "artist": "AC/DC (Stark Protocol)",
+                "artist": "AC/DC (Startup Theme)",
                 "state": "playing"
             }
         }
@@ -74,7 +74,7 @@ async def get_telemetry():
             "is_running": SpotifyController.is_running(),
             "track": {
                 "name": "AC/DC - Highway To Hell",
-                "artist": "Stark Protocol Standby",
+                "artist": "Startup Theme Ready",
                 "state": "ready"
             }
         }
@@ -87,7 +87,8 @@ async def get_telemetry():
         "spotify": media_info,
         "weather": weather,
         "running_apps": len(get_running_apps()),
-        "voice": settings.voice.voice_name
+        "voice": settings.voice.voice_name,
+        "play_boot_music": settings.play_boot_music
     }
 
 @app.on_event("startup")
@@ -117,9 +118,30 @@ async def execute_command(req: CommandRequest):
         asyncio.create_task(asyncio.to_thread(jarvis_voice.speak, res["text"]))
     return res
 
+class SettingsRequest(BaseModel):
+    play_boot_music: bool
+
+@app.get("/api/settings")
+async def get_settings():
+    """Retrieve user settings."""
+    return {
+        "play_boot_music": settings.play_boot_music
+    }
+
+@app.post("/api/settings")
+async def update_settings(req: SettingsRequest):
+    """Update and persist user settings."""
+    settings.set_play_boot_music(req.play_boot_music)
+    await broadcast_message({
+        "type": "settings",
+        "data": {"play_boot_music": settings.play_boot_music}
+    })
+    return {"status": "ok", "play_boot_music": settings.play_boot_music}
+
+@app.post("/api/boot/music")
 @app.post("/api/stark")
-async def trigger_stark_protocol():
-    """Initiate Tony Stark Highway to Hell protocol."""
+async def trigger_startup_music():
+    """Trigger the Highway to Hell theme."""
     try:
         SpotifyController.pause()
     except Exception:
@@ -129,7 +151,7 @@ async def trigger_stark_protocol():
         "status": "active",
         "song": "Highway to Hell"
     })
-    jarvis_voice.speak("Initiating protocol: Highway to Hell, Sir.", block=False)
+    jarvis_voice.speak("Initiating startup theme: Highway to Hell, Sir.", block=False)
     res = StarkAudioPlayer.play_highway_to_hell(volume=settings.spotify.default_volume)
     return res
 

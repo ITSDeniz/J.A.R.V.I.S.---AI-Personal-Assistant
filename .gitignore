@@ -39,6 +39,7 @@ env/
 
 # Audio & Temporary Caches
 assets/cache/
+assets/user_settings.json
 *.mp3
 *.wav
 assets/sounds/*.mp3
