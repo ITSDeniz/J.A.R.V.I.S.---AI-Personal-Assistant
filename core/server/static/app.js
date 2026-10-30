@@ -282,9 +282,27 @@ if (bootMusicToggle) {
 }
 
 // 6. Media Controls
-playPauseBtn.addEventListener('click', () => fetch('/api/spotify/toggle', { method: 'POST' }));
-prevBtn.addEventListener('click', () => fetch('/api/spotify/previous', { method: 'POST' }));
-nextBtn.addEventListener('click', () => fetch('/api/spotify/next', { method: 'POST' }));
+playPauseBtn.addEventListener('click', () => {
+  fetch('/api/spotify/toggle', { method: 'POST' })
+    .then(() => fetch('/api/telemetry'))
+    .then(res => res.json())
+    .then(data => updateTelemetryUI(data))
+    .catch(() => {});
+});
+prevBtn.addEventListener('click', () => {
+  fetch('/api/spotify/previous', { method: 'POST' })
+    .then(() => fetch('/api/telemetry'))
+    .then(res => res.json())
+    .then(data => updateTelemetryUI(data))
+    .catch(() => {});
+});
+nextBtn.addEventListener('click', () => {
+  fetch('/api/spotify/next', { method: 'POST' })
+    .then(() => fetch('/api/telemetry'))
+    .then(res => res.json())
+    .then(data => updateTelemetryUI(data))
+    .catch(() => {});
+});
 
 volumeSlider.addEventListener('input', (e) => {
   const val = e.target.value;

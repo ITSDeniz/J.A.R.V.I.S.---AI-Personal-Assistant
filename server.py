@@ -24,13 +24,6 @@ def start_hud(port: int = 8000, open_browser: bool = True):
         log_info(f"Opening HUD interface at {url}...")
         threading.Thread(target=_open_browser_delayed, args=(url,), daemon=True).start()
 
-    # Play Highway to Hell on initial boot if enabled by user
-    if settings.play_boot_music:
-        log_info("Startup theme audio active: Highway to Hell queued for boot.")
-        threading.Thread(target=run_boot_sequence, kwargs={"play_intro_song": True}, daemon=True).start()
-    else:
-        log_info("Startup theme audio disabled by user setting.")
-
     log_success(f"HUD Server active. WebSocket gateway listening on {url}/ws")
     uvicorn.run("core.server.app:app", host="127.0.0.1", port=port, log_level="warning", reload=True)
 

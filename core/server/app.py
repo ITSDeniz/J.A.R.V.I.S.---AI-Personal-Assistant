@@ -4,6 +4,7 @@ Serves the holographic dashboard and synchronizes real-time telemetry.
 """
 import asyncio
 import json
+import subprocess
 from pathlib import Path
 from typing import Set
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
@@ -33,6 +34,7 @@ app = FastAPI(title="J.A.R.V.I.S. HUD Gateway", version=settings.version)
 # Active WebSocket connections
 active_connections: Set[WebSocket] = set()
 _voice_lock = asyncio.Lock()
+_boot_executed = False
 
 class CommandRequest(BaseModel):
     command: str
@@ -53,15 +55,16 @@ async def get_telemetry():
     spotify_track = SpotifyController.get_current_track()
     weather = WeatherService.get_current_weather()
     
-    is_local_playing = StarkAudioPlayer._current_proc is not None and StarkAudioPlayer._current_proc.poll() is None
+    is_local_playing = StarkAudioPlayer.is_playing()
+    is_local_paused = StarkAudioPlayer.is_paused()
     
-    if is_local_playing:
+    if is_local_playing or is_local_paused:
         media_info = {
             "is_running": True,
             "track": {
                 "name": "Highway To Hell",
                 "artist": "AC/DC (Startup Theme)",
-                "state": "playing"
+                "state": "playing" if is_local_playing else "paused"
             }
         }
     elif spotify_track:
@@ -93,7 +96,16 @@ async def get_telemetry():
 
 @app.on_event("startup")
 async def start_telemetry_heartbeat():
-    """Continuously broadcast telemetry updates to connected clients every 1.5 seconds."""
+    """Continuously broadcast telemetry updates and trigger vocal boot status speech."""
+    global _boot_executed
+    if not _boot_executed:
+        _boot_executed = True
+        async def boot_task():
+            # Wait 0.8s for socket and browser initialization
+            await asyncio.sleep(0.8)
+            await asyncio.to_thread(run_boot_sequence, settings.play_boot_music)
+        asyncio.create_task(boot_task())
+
     async def heartbeat():
         while True:
             await asyncio.sleep(1.5)
@@ -157,17 +169,33 @@ async def trigger_startup_music():
 
 @app.post("/api/spotify/{action}")
 async def control_spotify(action: str):
-    """Control music playback."""
+    """Control music playback for both local startup audio and Spotify."""
     if action == "toggle":
+        if StarkAudioPlayer.is_playing() or StarkAudioPlayer.is_paused():
+            state = StarkAudioPlayer.toggle_play_pause()
+            return {"status": "ok", "action": "toggle", "media": "local", "state": state}
+        # Fallback system afplay check
+        res_pause = subprocess.run(["killall", "-STOP", "afplay"], capture_output=True)
+        if res_pause.returncode == 0:
+            StarkAudioPlayer._is_paused = True
+            return {"status": "ok", "action": "toggle", "media": "local", "state": "paused"}
+        elif StarkAudioPlayer.is_paused():
+            StarkAudioPlayer.resume_local_file()
+            return {"status": "ok", "action": "toggle", "media": "local", "state": "playing"}
         SpotifyController.toggle_play()
     elif action == "pause":
-        StarkAudioPlayer.stop_local_file()
+        StarkAudioPlayer.pause_local_file()
         SpotifyController.pause()
     elif action == "play":
-        SpotifyController.play()
+        if StarkAudioPlayer.is_paused():
+            StarkAudioPlayer.resume_local_file()
+        else:
+            SpotifyController.play()
     elif action == "next":
+        StarkAudioPlayer.stop_local_file()
         SpotifyController.next_track()
     elif action == "previous":
+        StarkAudioPlayer.stop_local_file()
         SpotifyController.previous_track()
     return {"status": "ok", "action": action}
 
