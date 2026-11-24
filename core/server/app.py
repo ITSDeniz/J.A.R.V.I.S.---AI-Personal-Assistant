@@ -47,17 +47,16 @@ async def get_index():
         return FileResponse(index_file)
     return JSONResponse({"status": "JARVIS Core Online", "hud": "Static assets loading"})
 
-@app.get("/api/telemetry")
-async def get_telemetry():
-    """Return live system telemetry data."""
+def _collect_telemetry() -> dict:
+    """Collect live system telemetry synchronously (safe to run in a worker thread)."""
     batt = get_battery_status()
     vol = get_system_volume()
     spotify_track = SpotifyController.get_current_track()
     weather = WeatherService.get_current_weather()
-    
+
     is_local_playing = StarkAudioPlayer.is_playing()
     is_local_paused = StarkAudioPlayer.is_paused()
-    
+
     if is_local_playing or is_local_paused:
         media_info = {
             "is_running": True,
@@ -93,6 +92,11 @@ async def get_telemetry():
         "voice": settings.voice.voice_name,
         "play_boot_music": settings.play_boot_music
     }
+
+@app.get("/api/telemetry")
+async def get_telemetry():
+    """Return live system telemetry data without blocking the event loop."""
+    return await asyncio.to_thread(_collect_telemetry)
 
 @app.on_event("startup")
 async def start_telemetry_heartbeat():
@@ -150,25 +154,28 @@ async def update_settings(req: SettingsRequest):
     })
     return {"status": "ok", "play_boot_music": settings.play_boot_music}
 
-@app.post("/api/boot/music")
-@app.post("/api/stark")
-async def trigger_startup_music():
-    """Trigger the Highway to Hell theme."""
+def _play_startup_music_sync() -> dict:
+    """Pause Spotify if running and start Highway to Hell playback synchronously."""
     try:
         SpotifyController.pause()
     except Exception:
         pass
+    return StarkAudioPlayer.play_highway_to_hell(volume=settings.spotify.default_volume)
+
+@app.post("/api/boot/music")
+@app.post("/api/stark")
+async def trigger_startup_music():
+    """Trigger the Highway to Hell theme."""
     await broadcast_message({
         "type": "stark_protocol",
         "status": "active",
         "song": "Highway to Hell"
     })
-    jarvis_voice.speak("Initiating startup theme: Highway to Hell, Sir.", block=False)
-    res = StarkAudioPlayer.play_highway_to_hell(volume=settings.spotify.default_volume)
-    return res
+    asyncio.create_task(asyncio.to_thread(jarvis_voice.speak, "Initiating startup theme: Highway to Hell, Sir.", False))
+    return await asyncio.to_thread(_play_startup_music_sync)
 
 @app.post("/api/spotify/{action}")
-async def control_spotify(action: str):
+def control_spotify(action: str):
     """Control music playback for both local startup audio and Spotify."""
     if action == "toggle":
         if StarkAudioPlayer.is_playing() or StarkAudioPlayer.is_paused():
@@ -200,7 +207,7 @@ async def control_spotify(action: str):
     return {"status": "ok", "action": action}
 
 @app.post("/api/volume/{level}")
-async def set_vol(level: int):
+def set_vol(level: int):
     """Set system audio volume."""
     set_system_volume(level)
     return {"status": "ok", "volume": level}
@@ -232,8 +239,8 @@ async def websocket_endpoint(websocket: WebSocket):
                     asyncio.create_task(asyncio.to_thread(jarvis_voice.speak, res["text"]))
             elif action == "stark":
                 await broadcast_message({"type": "stark_protocol", "status": "active", "song": "Highway to Hell"})
-                jarvis_voice.speak("Initiating protocol: Highway to Hell, Sir.", block=False)
-                res = StarkAudioPlayer.play_highway_to_hell(volume=settings.spotify.default_volume)
+                asyncio.create_task(asyncio.to_thread(jarvis_voice.speak, "Initiating startup theme: Highway to Hell, Sir.", False))
+                await asyncio.to_thread(_play_startup_music_sync)
             elif action == "voice_input":
                 if _voice_lock.locked():
                     await websocket.send_json({"type": "voice_status", "status": "busy", "message": "Processor busy"})
