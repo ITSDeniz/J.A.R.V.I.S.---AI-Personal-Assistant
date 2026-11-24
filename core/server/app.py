@@ -105,8 +105,8 @@ async def start_telemetry_heartbeat():
     if not _boot_executed:
         _boot_executed = True
         async def boot_task():
-            # Wait 0.8s for socket and browser initialization
-            await asyncio.sleep(0.8)
+            # Brief pause for socket initialization, then start boot sequence immediately
+            await asyncio.sleep(0.2)
             await asyncio.to_thread(run_boot_sequence, settings.play_boot_music)
         asyncio.create_task(boot_task())
 

@@ -61,18 +61,25 @@ def generate_boot_speech() -> str:
 
 def run_boot_sequence(play_intro_song: bool = False):
     """
-    Executes the full Stark audio boot sequence.
-    Speaks diagnostic greeting, then optionally blasts Highway to Hell.
+    Executes the J.A.R.V.I.S. audio boot sequence.
+    When play_intro_song is enabled, starts the startup theme immediately and
+    delivers the general status report a few seconds later.
     """
-    log_info("Executing J.A.R.V.I.S. vocal boot sequence...")
-    greeting = generate_boot_speech()
-    
-    # Speak greeting through neural voice
-    jarvis_voice.speak(greeting, block=True)
-    
+    log_info("Executing J.A.R.V.I.S. audio boot sequence...")
+
     if play_intro_song:
-        time.sleep(0.4)
         log_info("Initializing startup audio theme...")
-        jarvis_voice.speak("Initiating startup theme: Highway to Hell.", block=True)
         StarkAudioPlayer.play_highway_to_hell(volume=settings.spotify.default_volume)
         log_success("Startup theme active.")
+
+        # Collect status while the first 3 seconds of the intro theme play
+        start_ts = time.monotonic()
+        greeting = generate_boot_speech()
+        remaining = 3.0 - (time.monotonic() - start_ts)
+        if remaining > 0:
+            time.sleep(remaining)
+    else:
+        greeting = generate_boot_speech()
+
+    # Speak general status through neural voice
+    jarvis_voice.speak(greeting, block=True)
