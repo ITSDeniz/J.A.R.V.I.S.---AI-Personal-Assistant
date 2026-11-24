@@ -84,6 +84,23 @@ class VoiceEngine:
             self._current_process.terminate()
             self._current_process = None
 
+    async def _ensure_cached(self, text: str) -> Optional[Path]:
+        """Return a valid cached audio path for text, synthesizing if missing or empty."""
+        cache_file = self._get_cache_path(text)
+        if not cache_file.exists() or cache_file.stat().st_size == 0:
+            if cache_file.exists():
+                cache_file.unlink(missing_ok=True)
+            if not await self.synthesize(text, cache_file):
+                return None
+        return cache_file
+
+    def prepare(self, text: str) -> bool:
+        """Pre-synthesize and cache audio without playing it yet."""
+        text = text.strip()
+        if not text:
+            return False
+        return asyncio.run(self._ensure_cached(text)) is not None
+
     async def speak_async(self, text: str, block: bool = True) -> bool:
         """
         Synthesizes (or loads from cache) and speaks the given text out loud.
@@ -93,16 +110,10 @@ class VoiceEngine:
             return False
 
         log_jarvis_speak(text)
-        cache_file = self._get_cache_path(text)
-
-        # Use cached audio if valid, otherwise synthesize (and fall back to macOS say on failure)
         loop = asyncio.get_running_loop()
-        if not cache_file.exists() or cache_file.stat().st_size == 0:
-            if cache_file.exists():
-                cache_file.unlink(missing_ok=True)
-            success = await self.synthesize(text, cache_file)
-            if not success:
-                return await loop.run_in_executor(None, self._speak_macos_fallback, text, block)
+        cache_file = await self._ensure_cached(text)
+        if cache_file is None:
+            return await loop.run_in_executor(None, self._speak_macos_fallback, text, block)
 
         # Play audio via macOS CoreAudio afplay
         return await loop.run_in_executor(None, self.play_audio, cache_file, block)

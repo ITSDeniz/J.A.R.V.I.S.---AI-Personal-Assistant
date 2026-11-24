@@ -72,10 +72,11 @@ def run_boot_sequence(play_intro_song: bool = False):
         StarkAudioPlayer.play_highway_to_hell(volume=settings.spotify.default_volume)
         log_success("Startup theme active.")
 
-        # Collect status while the first 3 seconds of the intro theme play
+        # Collect status and pre-synthesize TTS during the 2s intro window
         start_ts = time.monotonic()
         greeting = generate_boot_speech()
-        remaining = 3.0 - (time.monotonic() - start_ts)
+        jarvis_voice.prepare(greeting)
+        remaining = 2.0 - (time.monotonic() - start_ts)
         if remaining > 0:
             time.sleep(remaining)
     else:

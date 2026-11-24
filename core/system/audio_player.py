@@ -129,8 +129,8 @@ class StarkAudioPlayer:
         try:
             # Stop existing playback if any
             cls.stop_local_file()
-            # afplay volume range: -v from 0 to 1 (or 0 to 2)
-            vol_float = max(0.1, min(2.0, volume / 100.0 * 1.5))
+            # Keep background music balanced below JARVIS speech (1.0) so voice remains clear
+            vol_float = max(0.05, min(1.0, volume / 100.0 * 0.55))
             cls._current_proc = subprocess.Popen(["afplay", "-v", str(vol_float), str(file_path)])
             cls._is_paused = False
             return True
