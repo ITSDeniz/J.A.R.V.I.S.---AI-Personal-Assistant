@@ -120,7 +120,7 @@ async def start_telemetry_heartbeat():
 @app.post("/api/command")
 async def execute_command(req: CommandRequest):
     """Execute a text command and broadcast results immediately, speaking concurrently."""
-    res = jarvis_agent.process_command(req.command, speak_output=False)
+    res = await asyncio.to_thread(jarvis_agent.process_command, req.command, False)
     await broadcast_message({
         "type": "conversation",
         "user": req.command,
