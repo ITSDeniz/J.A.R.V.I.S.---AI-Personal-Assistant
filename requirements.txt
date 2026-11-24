@@ -4,7 +4,7 @@ requests>=2.31.0
 pydantic>=2.5.0
 
 # Text-to-Speech (Neural Voice Engine)
-edge-tts>=6.1.10
+edge-tts>=7.3.1
 
 # Audio handling & Speech
 aiohttp>=3.9.0

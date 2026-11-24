@@ -28,7 +28,8 @@ class VoiceEngine:
         return self.cache_dir / f"{text_hash}.mp3"
 
     async def synthesize(self, text: str, output_path: Path) -> bool:
-        """Synthesize text into an audio file asynchronously."""
+        """Synthesize text into an audio file atomically to avoid corrupt 0-byte cache entries."""
+        tmp_path = output_path.with_suffix(".tmp")
         try:
             communicate = edge_tts.Communicate(
                 text=text,
@@ -37,15 +38,35 @@ class VoiceEngine:
                 pitch=settings.voice.speech_pitch,
                 volume=settings.voice.speech_volume
             )
-            await communicate.save(str(output_path))
+            await communicate.save(str(tmp_path))
+            if not tmp_path.exists() or tmp_path.stat().st_size == 0:
+                raise RuntimeError("Synthesized audio file is empty")
+            tmp_path.replace(output_path)
             return True
         except Exception as e:
+            if tmp_path.exists():
+                tmp_path.unlink(missing_ok=True)
             log_error(f"TTS synthesis failure: {e}")
+            return False
+
+    def _speak_macos_fallback(self, text: str, block: bool = True) -> bool:
+        """Fallback to native macOS 'say' if cloud neural TTS is unavailable."""
+        try:
+            cmd = ["say", "-v", "Daniel", text]
+            if block:
+                res = subprocess.run(cmd, capture_output=True)
+                if res.returncode != 0:
+                    subprocess.run(["say", text], check=True)
+            else:
+                self._current_process = subprocess.Popen(cmd)
+            return True
+        except Exception as e:
+            log_error(f"Fallback speech error: {e}")
             return False
 
     def play_audio(self, audio_path: Path, block: bool = True) -> bool:
         """Play audio file via native macOS afplay utility."""
-        if not audio_path.exists():
+        if not audio_path.exists() or audio_path.stat().st_size == 0:
             return False
         try:
             if block:
@@ -74,14 +95,16 @@ class VoiceEngine:
         log_jarvis_speak(text)
         cache_file = self._get_cache_path(text)
 
-        # Use cached audio if available, otherwise synthesize
-        if not cache_file.exists():
+        # Use cached audio if valid, otherwise synthesize (and fall back to macOS say on failure)
+        loop = asyncio.get_running_loop()
+        if not cache_file.exists() or cache_file.stat().st_size == 0:
+            if cache_file.exists():
+                cache_file.unlink(missing_ok=True)
             success = await self.synthesize(text, cache_file)
             if not success:
-                return False
+                return await loop.run_in_executor(None, self._speak_macos_fallback, text, block)
 
         # Play audio via macOS CoreAudio afplay
-        loop = asyncio.get_running_loop()
         return await loop.run_in_executor(None, self.play_audio, cache_file, block)
 
     def speak(self, text: str, block: bool = True) -> bool:
